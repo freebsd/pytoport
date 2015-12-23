@@ -126,7 +126,7 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         o.write("%s <%s>" % (name, email))
     o.write("\n# $FreeBSD$\n\n")
 
-    add(o, "PORTNAME", info['name'])
+    add(o, "PORTNAME", info['name'].lower())
     add(o, "PORTVERSION", info['version'])
     add(o, "CATEGORIES", "devel")
     add(o, "MASTER_SITES", "CHEESESHOP")
