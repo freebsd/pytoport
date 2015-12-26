@@ -226,7 +226,7 @@ def update_license_data(data, license_data):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: pytonorm.py [path] [modules...]")
+        print("Usage: pytonorm [path] [modules...]")
         sys.exit(1)
 
     try:
@@ -276,3 +276,4 @@ if __name__ == "__main__":
         print('[!] The following packages had no source dist:')
         for src in no_src:
             print('  - %s' % src)
+
