@@ -14,17 +14,15 @@ $ pytoport ~/my-ports/devel nosetests fixtures
 In your `~/my-ports/devel` directory, you will find `py-nosetests` and
 `py-fixtures` with a `Makefile` and if you're lucky, a `distinfo` too.
 
-You should also create a `~/.pytoport` file with the following details:
+You should also create a `~/.porttools` file with the following details:
 
 ```
-{
-    "email": "your@email.address",
-    "name": "Your Name"
-}
+EMAIL="your@email.address"
+FULLNAME="Your Name"
 ```
 
-If you don't, you'll have to fill out the relevant parts of the `Makefile`
-yourself.
+See `man 5 porttools` for more information. If you don't create this file, you'll have to fill out
+the relevant parts of the `Makefile` yourself.
 
 ## License
 

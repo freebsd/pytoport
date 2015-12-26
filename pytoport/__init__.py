@@ -26,8 +26,6 @@
 #
 # $FreeBSD$
 
-# pytoport is Swedish for python. ;)
-
 import json
 import os
 import sys
@@ -224,14 +222,31 @@ def update_license_data(data, license_data):
     data['info']['license'] = lic
     data['info']['licfile'] = license_data['filename']
 
+def parse_dot_porttools(f):
+    config = {}
+
+    for line in f:
+        try:
+            key, val = line.split("=")
+            key = key.strip()
+            val = val.strip()
+            if key == "EMAIL":
+                config['email'] = val[1:-1]
+            if key == "FULLNAME":
+                config['name'] = val[1:-1]
+        except:
+            pass
+
+    return config
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: pytoport [path] [modules...]")
         sys.exit(1)
 
     try:
-        with open(join(expanduser("~"), ".pytoport")) as f:
-            user = json.load(f)
+        with open(join(expanduser("~"), ".porttools")) as f:
+            user = parse_dot_porttools(f)
     except:
         user = {}
 
