@@ -26,7 +26,7 @@
 #
 # $FreeBSD$
 
-# pytonorm is Swedish for python. ;)
+# pytoport is Swedish for python. ;)
 
 import json
 import os
@@ -226,11 +226,11 @@ def update_license_data(data, license_data):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: pytonorm [path] [modules...]")
+        print("Usage: pytoport [path] [modules...]")
         sys.exit(1)
 
     try:
-        with open(join(expanduser("~"), ".pytonorm")) as f:
+        with open(join(expanduser("~"), ".pytoport")) as f:
             user = json.load(f)
     except:
         user = {}
