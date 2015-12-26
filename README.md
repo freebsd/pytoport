@@ -1,4 +1,4 @@
-# pytonorm
+# pytoport
 
 A fairly normal way to generate FreeBSD port Makefiles straight from PyPI.
 
@@ -8,7 +8,7 @@ You specify a base directory for the packages to be generated into, then just
 let it rip!
 
 ```
-$ pytonorm ~/my-ports/devel nosetests fixtures
+$ pytoport ~/my-ports/devel nosetests fixtures
 ```
 
 In your `~/my-ports/devel` directory, you will find `py-nosetests` and
