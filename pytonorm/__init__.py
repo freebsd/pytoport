@@ -224,7 +224,7 @@ def update_license_data(data, license_data):
     data['info']['license'] = lic
     data['info']['licfile'] = license_data['filename']
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 3:
         print("Usage: pytonorm [path] [modules...]")
         sys.exit(1)
@@ -277,3 +277,5 @@ if __name__ == "__main__":
         for src in no_src:
             print('  - %s' % src)
 
+if __name__ == "__main__":
+    main()
