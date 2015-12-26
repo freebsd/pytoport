@@ -12,7 +12,7 @@ setup(
     description = "Generate FreeBSD Makefiles from Python modules on PyPI",
     license = "BSD-2-Clause",
     keywords = "freebsd makefile pypi module",
-    url = "https://github.com/bbqsrc/pytoport/",
+    url = "https://github.com/freebsd/pytoport/",
     long_description=desc,
     classifiers=[
         "Development Status :: 3 - Alpha",
