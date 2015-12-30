@@ -134,7 +134,7 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
                 continue
 
             pkg = m.group(1)
-            version = m.group(2)
+            version = m.group(2) or '>0'
             extra = m.group(3)
 
             if extra:
