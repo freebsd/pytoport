@@ -5,7 +5,7 @@ with open('README.rst') as f:
 
 setup(
     name = "pytoport",
-    version = "0.2.0",
+    version = "0.3.0a1",
     packages = find_packages(),
     author = "Brendan Molloy",
     author_email = "brendan+pypi@bbqsrc.net",
@@ -28,6 +28,9 @@ setup(
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5"
+    ],
+    install_requires = [
+        'spdx_lookup>=0.3.0'
     ],
     entry_points = {
         'console_scripts': [

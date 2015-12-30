@@ -27,6 +27,7 @@
 # $FreeBSD$
 
 import json
+import re
 import os
 import sys
 from io import StringIO
@@ -34,26 +35,7 @@ from urllib import request
 from os.path import expanduser, join, abspath
 from subprocess import Popen, PIPE
 
-LICENSEE_SCRIPT = """\
-require 'json'
-require 'licensee'
-
-path = '%s'
-
-project = Licensee::FSProject.new(path, detect_packages: true)
-
-if project.license_file && project.matched_file && project.matched_file.license
-  file = project.matched_file
-  puts JSON.generate({
-    :key => file.license.key,
-    :filename => project.license_file.filename,
-    :license => file.license.meta,
-    :confidence => file.confidence
-  })
-else
-  puts "null"
-end
-"""
+import spdx_lookup
 
 def get_sdist(data):
     version = data['info']['version']
@@ -71,12 +53,7 @@ def get_licenses(data):
     return data['info']['license']
 
 def attempt_detect_license(path):
-    p = Popen(['ruby'], stdin=PIPE, stdout=PIPE)
-    out, err = p.communicate((LICENSEE_SCRIPT % path).encode('utf-8'))
-    if p.returncode == 0:
-        return json.loads(out.decode('utf-8'))
-
-    return None
+    return spdx_lookup(path)
 
 pl_prefix = "Programming Language :: Python :: "
 
@@ -116,6 +93,8 @@ def add(o, k, v):
         o.write('\t')
     o.write("\t%s\n" % v)
 
+_requires_dist_re = re.compile(r'^([^\s;]+)\s*(?:\((.+?)\))?(?:; (.*))?;*?$')
+
 def generate_makefile(data, path=os.getcwd(), name=None, email=None):
     info = data['info']
     o = StringIO()
@@ -126,7 +105,7 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
 
     add(o, "PORTNAME", info['name'].lower())
     add(o, "PORTVERSION", info['version'])
-    add(o, "CATEGORIES", "devel")
+    add(o, "CATEGORIES", "devel python")
     add(o, "MASTER_SITES", "CHEESESHOP")
     add(o, "PKGNAMEPREFIX", "${PYTHON_PKGNAMEPREFIX}")
     o.write('\n')
@@ -149,10 +128,20 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
     if deps is not None:
         d = []
         for dep in deps:
-            name, ver = dep.split(' ')
-            ver = ver[1:-1] # remove brackets
+            m = _require_deps_re.match(dep)
+            if m is None:
+                # TODO handle this better
+                continue
+
+            pkg = m.group(1)
+            version = m.group(2)
+            extra = m.group(3)
+
+            if extra:
+                print("%s has extra info: %s" % (pkg, extra))
+
             d.append("${PYTHON_PKGNAMEPREFIX}%s%s:${PORTSDIR}/XXX/py-%s" % (
-                name, ver, name))
+                pkg, version, pkg))
 
         add(o, 'RUN_DEPENDS', ' \\\n\t\t\t'.join(d))
         o.write('\n')
@@ -212,15 +201,15 @@ LICENSEE_KEYS = {
     "ofl-1.1": "OFL11"
 }
 
-def update_license_data(data, license_data):
-    key = license_data['key']
-    lic = LICENSEE_KEYS.get(key, None)
+def update_license_data(data, license):
+    key = license.id.lower()
+    id_ = LICENSEE_KEYS.get(key, None)
 
-    if lic is None:
+    if id_ is None:
         return
 
-    data['info']['license'] = lic
-    data['info']['licfile'] = license_data['filename']
+    data['info']['license'] = id_
+    data['info']['licfile'] = license.filename
 
 def parse_dot_porttools(f):
     config = {}
