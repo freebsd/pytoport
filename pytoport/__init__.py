@@ -178,7 +178,7 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         add(o, "USES", "python")
 
     add(o, "USE_PYTHON", "distutils autoplist")
-    o.write('\n.include <bsd.port.mk>')
+    o.write('\n.include <bsd.port.mk>\n')
 
     with open(join(path, 'Makefile'), 'w') as f:
         f.write(o.getvalue())
