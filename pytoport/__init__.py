@@ -311,6 +311,8 @@ def main():
             print("[-] Regenerating makefile with new data")
             generate_makefile(data, path, **user)
 
+        print("[*] GENERATED: %s" % name)
+
 
     if len(no_src):
         print('[!] The following packages had no source dist:')
