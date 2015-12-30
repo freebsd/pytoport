@@ -1,6 +1,11 @@
 # Changelog for pytoport
 
-## v0.3.0
+## v0.3.1 - 2015-12-30
+
+- Fix logic error for handling updating detected licenses
+- Fix logic error for major version only trove ids (eg, no more '3.-1')
+
+## v0.3.0 - 2015-12-30
 
 - Can handle more exotic dependency lists now
 - Dropped ruby `licensee` dependency (but it was fun while it lasted)

@@ -87,7 +87,11 @@ def get_minimum(data):
     else:
         lowest = supported[0]
 
-    ver = "%s.%s" % lowest
+    if lowest[1] == -1:
+        ver = "%s" % lowest[0]
+    else:
+        ver = "%s.%s" % lowest
+
     others = []
     for x in supported:
         if x[1] == -1:
