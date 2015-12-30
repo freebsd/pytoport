@@ -30,6 +30,7 @@ import json
 import re
 import os
 import sys
+import textwrap
 from io import StringIO
 from urllib import request
 from os.path import expanduser, join, abspath
@@ -48,6 +49,15 @@ def get_package_metadata(name):
     with request.urlopen(url) as f:
         data = json.loads(f.read().decode('utf-8'))
     return data
+
+def generate_pkg_descr(data, path=os.getcwd()):
+    info = data['info']
+    no_desc = '!! NO DESCRIPTION FOUND. !!'
+    d = textwrap.fill(info.get('description', no_desc), width=80)
+    www = info.get('home_page', info['package_url'])
+
+    with open(join(path, 'pkg-descr'), 'w') as f:
+        f.write("%s\n\nWWW: %s\n" % (d, www))
 
 def get_licenses(data):
     return data['info']['license']
@@ -264,20 +274,28 @@ def main():
         regen = False
         data = get_package_metadata(arg)
         name = data['info']['name']
-        print("[-] Generating %s..." % name)
+        print("[-] Generating files for %s..." % name)
 
         if name.lower().startswith('py-'):
             name = name[3:]
 
         path = abspath(join(base, 'py-%s' % name.lower()))
         os.makedirs(path, exist_ok=True)
+
+        print("[-] Generating Makefile")
         generate_makefile(data, path, **user)
+
+        print("[-] Generating pkg-descr")
+        generate_pkg_descr(data, path)
+
+        print("[-] Downloading source files")
         src = download_source(data, path, distdir)
 
         if src is None:
             no_src.append(name)
             continue
 
+        print("[-] Extracting source files")
         extract_source(join(distdir, src), distdir)
 
         src_dir = join(distdir, src.rstrip('.tar.gz'))
@@ -292,6 +310,7 @@ def main():
         if regen:
             print("[-] Regenerating makefile with new data")
             generate_makefile(data, path, **user)
+
 
     if len(no_src):
         print('[!] The following packages had no source dist:')
