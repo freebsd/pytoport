@@ -65,7 +65,7 @@ def version_iter(data):
                 # -1 indicates non-field
                 yield (int(raw[0]), -1)
             else:
-                yield (int(x) for x in raw.split('.'))
+                yield tuple(int(x) for x in raw.split('.'))
 
 pl_prefix = "Programming Language :: Python :: "
 
@@ -82,7 +82,7 @@ def get_minimum(data):
     has_3 = len([x for x in supported if x[0] == 3]) > 0
 
     # FreeBSD lowest supported of v2
-    if lowest[0] == 2:
+    if supported[0] == 2:
         lowest = (2, 7)
     else:
         lowest = supported[0]
