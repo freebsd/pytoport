@@ -55,37 +55,47 @@ def get_licenses(data):
 def attempt_detect_license(path):
     return spdx_lookup.match_path(path)
 
-pl_prefix = "Programming Language :: Python :: "
-
-def get_minimum(data):
-    lowest = (1000, 1000)
-
-    has_3 = False
-
+def version_iter(data):
     for k in data['info']['classifiers']:
         if k.startswith(pl_prefix):
             raw = k.strip(pl_prefix)
             if raw[0] not in ('2', '3'):
                 continue
             if len(raw) == 1:
-                major = int(raw[0])
-                minor = 0
+                # -1 indicates non-field
+                yield (int(raw[0]), -1)
             else:
-                major, minor = (int(x) for x in raw.split('.'))
-            if major == 3:
-                has_3 = True
-            if (major, minor) < lowest:
-                lowest = (major, minor)
+                yield (int(x) for x in raw.split('.'))
 
-    if lowest == (1000, 1000):
+pl_prefix = "Programming Language :: Python :: "
+
+def get_minimum(data):
+    supported = list(version_iter(data))
+    supported.sort()
+
+    if len(supported) == 0:
         return None
+    elif len(supported) == 1:
+        return "%d.%d" % supported[0]
 
+    has_2 = len([x for x in supported if x[0] == 3]) > 0
+    has_3 = len([x for x in supported if x[0] == 3]) > 0
+
+    # FreeBSD lowest supported of v2
     if lowest[0] == 2:
         lowest = (2, 7)
-    n = "%d.%d" % lowest
-    if has_3:
-        return "%s+" % n
-    return n
+    else:
+        lowest = supported[0]
+
+    ver = "%s.%s" % lowest
+    others = []
+    for x in supported:
+        if x[1] == -1:
+            others.append("%s" % x[0])
+        else:
+            others.append("%s.%s" % x)
+
+    return "%s+ # %s" % (ver, ", ".join(others))
 
 def add(o, k, v):
     o.write("%s=" % k)
