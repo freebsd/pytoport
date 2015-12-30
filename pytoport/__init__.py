@@ -212,15 +212,15 @@ LICENSEE_KEYS = {
     "ofl-1.1": "OFL11"
 }
 
-def update_license_data(data, license):
-    key = license.id.lower()
+def update_license_data(data, license_data):
+    key = license_data.license.id.lower()
     id_ = LICENSEE_KEYS.get(key, None)
 
     if id_ is None:
         return
 
     data['info']['license'] = id_
-    data['info']['licfile'] = license.filename
+    data['info']['licfile'] = license_data.filename
 
 def parse_dot_porttools(f):
     config = {}

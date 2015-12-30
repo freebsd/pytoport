@@ -5,7 +5,7 @@ with open('README.rst') as f:
 
 setup(
     name = "pytoport",
-    version = "0.3.0",
+    version = "0.3.1",
     packages = find_packages(),
     author = "Brendan Molloy",
     author_email = "brendan+pypi@bbqsrc.net",
