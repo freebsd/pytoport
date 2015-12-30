@@ -255,7 +255,7 @@ def main():
             name = name[3:]
 
         path = abspath(join(base, 'py-%s' % name.lower()))
-        os.makedirs(path)
+        os.makedirs(path, exists_ok=True)
         generate_makefile(data, path, **user)
         src = download_source(data, path, distdir)
 
