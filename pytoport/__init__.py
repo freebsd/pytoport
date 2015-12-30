@@ -131,7 +131,8 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         add(o, "LICENSE", info['license'])
         add(o, "LICENSE_FILE", "${WRKSRC}/%s" % info['licfile'])
     else:
-        add(o, "# LICENSE", "%s # Ensure this is valid!" % get_licenses(data))
+        add(o, "# LICENSE", ("%s # Ensure this is valid! " +
+            "See ${PORTSDIR}/Mk/bsd.licenses.db.mk.") % get_licenses(data))
     o.write('\n')
 
     deps = data['info'].get('requires_dist', None)
