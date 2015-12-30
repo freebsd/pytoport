@@ -53,7 +53,7 @@ def get_licenses(data):
     return data['info']['license']
 
 def attempt_detect_license(path):
-    return spdx_lookup(path)
+    return spdx_lookup.match_path(path)
 
 pl_prefix = "Programming Language :: Python :: "
 

@@ -30,7 +30,7 @@ setup(
         "Programming Language :: Python :: 3.5"
     ],
     install_requires = [
-        'spdx_lookup>=0.3.0'
+        'spdx-lookup>=0.3.0'
     ],
     entry_points = {
         'console_scripts': [
