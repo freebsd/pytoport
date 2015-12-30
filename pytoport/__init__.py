@@ -128,7 +128,7 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
     if deps is not None:
         d = []
         for dep in deps:
-            m = _require_deps_re.match(dep)
+            m = _requires_dist_re.match(dep)
             if m is None:
                 # TODO handle this better
                 continue
@@ -255,7 +255,7 @@ def main():
             name = name[3:]
 
         path = abspath(join(base, 'py-%s' % name.lower()))
-        os.makedirs(path, exists_ok=True)
+        os.makedirs(path, exist_ok=True)
         generate_makefile(data, path, **user)
         src = download_source(data, path, distdir)
 
@@ -271,6 +271,8 @@ def main():
             update_license_data(data, license_data)
             print("[-] Updating data with correct license")
             regen = True
+        else:
+            print("[-] No LICENSE file found in package, couldn't update")
 
         if regen:
             print("[-] Regenerating makefile with new data")
