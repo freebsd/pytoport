@@ -86,14 +86,13 @@ def get_minimum(data):
     if len(supported) == 0:
         return None
     elif len(supported) == 1:
-        return "%d.%d" % supported[0]
-
-    has_2 = len([x for x in supported if x[0] == 3]) > 0
-    has_3 = len([x for x in supported if x[0] == 3]) > 0
+        if supported[0][1] == -1:
+            return "%s" % supported[0][0]
+        return "%s.%s" % supported[0]
 
     # FreeBSD lowest supported of v2
-    if supported[0] == 2:
-        lowest = (2, 7)
+    if supported[0][0] == 2:
+        return "" # Support all!
     else:
         lowest = supported[0]
 
