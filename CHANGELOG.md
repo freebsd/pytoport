@@ -1,5 +1,11 @@
 # Changelog for pytoport
 
+## v0.4.0 - 2015-12-31
+
+- Generate a simple `pkg-descr` from given metadata
+- Improved messaging further
+- If it can be detected all >2.7 are supported, drop suffix
+
 ## v0.3.1 - 2015-12-30
 
 - Fix logic error for handling updating detected licenses
