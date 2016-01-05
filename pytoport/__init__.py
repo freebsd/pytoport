@@ -23,8 +23,6 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
-#
-# $FreeBSD$
 
 import json
 import re
@@ -36,7 +34,19 @@ from urllib import request
 from os.path import expanduser, join, abspath
 from subprocess import Popen, PIPE
 
+import docutils
+import docutils.frontend
+import docutils.utils
+import docutils.parsers.rst
 import spdx_lookup
+
+def rst_to_text(rst_data):
+    settings = docutils.frontend.OptionParser(
+        components=(docutils.parsers.rst.Parser,)).get_default_values()
+    doc = docutils.utils.new_document('', settings)
+    parser = docutils.parsers.rst.Parser()
+    parser.parse(rst_data, doc)
+    return doc.astext()
 
 def get_sdist(data):
     version = data['info']['version']
@@ -53,7 +63,14 @@ def get_package_metadata(name):
 def generate_pkg_descr(data, path=os.getcwd()):
     info = data['info']
     no_desc = '!! NO DESCRIPTION FOUND. !!'
-    d = textwrap.fill(info.get('description', no_desc), width=80)
+    desc = info.get('description', no_desc)
+
+    try:
+        desc = rst_to_text(desc)
+    except:
+        pass
+
+    d = textwrap.fill(desc, width=80)
     www = info.get('home_page', info['package_url'])
 
     with open(join(path, 'pkg-descr'), 'w') as f:
