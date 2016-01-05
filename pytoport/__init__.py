@@ -70,7 +70,7 @@ def generate_pkg_descr(data, path=os.getcwd()):
     except:
         pass
 
-    d = textwrap.fill(desc, width=80)
+    d = "\n\n".join(textwrap.fill(x, width=80) for x in desc.split('\n\n'))
     www = info.get('home_page', info['package_url'])
 
     with open(join(path, 'pkg-descr'), 'w') as f:
