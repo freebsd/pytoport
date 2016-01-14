@@ -82,19 +82,22 @@ def get_licenses(data):
 def attempt_detect_license(path):
     return spdx_lookup.match_path(path)
 
+classifier_re = re.compile('\s*::\s*')
+pl_prefix = ("Programming Language", "Python")
+
 def version_iter(data):
     for k in data['info']['classifiers']:
-        if k.startswith(pl_prefix):
-            raw = k.strip(pl_prefix)
+        parts = tuple(classifier_re.split(k))
+        print(parts)
+        if parts[:2] == pl_prefix:
+            raw = parts[2].split('.')
+            print(raw)
             if raw[0] not in ('2', '3'):
                 continue
-            if len(raw) == 1:
-                # -1 indicates non-field
+            elif len(raw) == 1:
                 yield (int(raw[0]), -1)
             else:
-                yield tuple(int(x) for x in raw.split('.'))
-
-pl_prefix = "Programming Language :: Python :: "
+                yield tuple(int(x) for x in raw)
 
 def get_minimum(data):
     supported = list(version_iter(data))
