@@ -88,10 +88,8 @@ pl_prefix = ("Programming Language", "Python")
 def version_iter(data):
     for k in data['info']['classifiers']:
         parts = tuple(classifier_re.split(k))
-        print(parts)
         if parts[:2] == pl_prefix:
             raw = parts[2].split('.')
-            print(raw)
             if raw[0] not in ('2', '3'):
                 continue
             elif len(raw) == 1:
