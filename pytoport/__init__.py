@@ -155,7 +155,8 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         add(o, "MAINTAINER", "# FILL ME")
     else:
         add(o, "MAINTAINER", email)
-    add(o, "COMMENT", info['summary'])
+    summary = info.get('summary', '# FILL ME')
+    add(o, "COMMENT", "{}".format(summary.capitalize().rstrip('.')))
     o.write('\n')
 
     if info.get('licfile', None):
