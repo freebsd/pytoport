@@ -8,35 +8,35 @@ Installation
 ------------
 
 FreeBSD
-^^^^^^^
+~~~~~~~
 
-You can install pytport using `pkg(8) <https://github.com/freebsd/pkg>`_ or 
-port framework:
-
-::
-
-   # pkg install -g py\*-pytoport
-   or
-   # make -C /usr/ports/ports-mgmt/py-pytoport install clean
-
-From Source
-^^^^^^^^^^^
-
-In order to use pytoport, you should install the required dependencies:
+You can install ``pytoport`` using
+`pkg(8) <https://github.com/freebsd/pkg>`__, or the Ports framework:
 
 ::
 
-    $ pip install -r requirements.txt
-    $ pip install pytoport
+    $ pkg install -g pyXY-pytoport # Where XY is Python version eg. 34
+    or
+    $ make -C /usr/ports/ports-mgmt/py-pytoport install clean
 
-It's recommend to create a virtualenv to install your dependencies in order to
-not pollute your system installation:
+From source (for development)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is recommended to create a ``virtualenv`` to install your
+dependencies in order to not pollute your system installation:
 
 ::
 
     $ virtualenv --python=python3.X /path/to/venv
-    $ source /path/to/venv
+    $ source /path/to/venv/bin/activate
     $ pip install -r requirements.txt
+
+You can then install from the ``setup.py`` directly, use ``pip``, or run
+locally with:
+
+::
+
+    $ python -m pytoport
 
 Usage
 -----
