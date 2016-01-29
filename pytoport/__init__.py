@@ -32,13 +32,14 @@ import textwrap
 from io import StringIO
 from urllib import request
 from os.path import expanduser, join, abspath
-from subprocess import Popen, PIPE
+from subprocess import Popen
 
 import docutils
 import docutils.frontend
 import docutils.utils
 import docutils.parsers.rst
 import spdx_lookup
+
 
 def rst_to_text(rst_data):
     settings = docutils.frontend.OptionParser(
@@ -48,17 +49,20 @@ def rst_to_text(rst_data):
     parser.parse(rst_data, doc)
     return doc.astext()
 
+
 def get_sdist(data):
     version = data['info']['version']
     for o in data['releases'][version]:
         if o['packagetype'] == 'sdist':
             return o
 
+
 def get_package_metadata(name):
     url = 'https://pypi.python.org/pypi/{}/json'.format(name)
     with request.urlopen(url) as f:
         data = json.loads(f.read().decode('utf-8'))
     return data
+
 
 def generate_pkg_descr(data, path=os.getcwd()):
     info = data['info']
@@ -76,14 +80,17 @@ def generate_pkg_descr(data, path=os.getcwd()):
     with open(join(path, 'pkg-descr'), 'w') as f:
         f.write("%s\n\nWWW: %s\n" % (d, www))
 
+
 def get_licenses(data):
     return data['info']['license']
+
 
 def attempt_detect_license(path):
     return spdx_lookup.match_path(path)
 
 classifier_re = re.compile('\s*::\s*')
 pl_prefix = ("Programming Language", "Python")
+
 
 def version_iter(data):
     for k in data['info']['classifiers']:
@@ -96,6 +103,7 @@ def version_iter(data):
                 yield (int(raw[0]), -1)
             else:
                 yield tuple(int(x) for x in raw)
+
 
 def get_minimum(data):
     supported = list(version_iter(data))
@@ -110,7 +118,7 @@ def get_minimum(data):
 
     # FreeBSD lowest supported of v2
     if supported[0][0] == 2:
-        return "" # Support all!
+        return ""  # Support all!
     else:
         lowest = supported[0]
 
@@ -128,6 +136,7 @@ def get_minimum(data):
 
     return "%s+ # %s" % (ver, ", ".join(others))
 
+
 def add(o, k, v):
     o.write("%s=" % k)
     if len(k) < 7:
@@ -135,6 +144,7 @@ def add(o, k, v):
     o.write("\t%s\n" % v)
 
 _requires_dist_re = re.compile(r'^([^\s;]+)\s*(?:\((.+?)\))?(?:; (.*))?;*?$')
+
 
 def generate_makefile(data, path=os.getcwd(), name=None, email=None):
     info = data['info']
@@ -155,7 +165,8 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         add(o, "MAINTAINER", "# FILL ME")
     else:
         add(o, "MAINTAINER", email)
-    add(o, "COMMENT", info['summary'])
+    summary = info.get('summary', '# FILL ME')
+    add(o, "COMMENT", "{}".format(summary.capitalize().rstrip('.')))
     o.write('\n')
 
     if info.get('licfile', None):
@@ -201,6 +212,7 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         f.write(o.getvalue())
     print('[-] Makefile generated.')
 
+
 def download_source(data, path=os.getcwd(), distdir=None):
     if distdir is None:
         distdir = path
@@ -219,6 +231,7 @@ def download_source(data, path=os.getcwd(), distdir=None):
         sys.exit(1)
 
     return sdist['filename']
+
 
 def extract_source(path, dest):
     p = Popen(['tar', 'xf', path], cwd=dest)
@@ -243,6 +256,7 @@ LICENSEE_KEYS = {
     "ofl-1.1": "OFL11"
 }
 
+
 def update_license_data(data, license_data):
     key = license_data.license.id.lower()
     id_ = LICENSEE_KEYS.get(key, None)
@@ -252,6 +266,7 @@ def update_license_data(data, license_data):
 
     data['info']['license'] = id_
     data['info']['licfile'] = license_data.filename
+
 
 def parse_dot_porttools(f):
     config = {}
@@ -269,6 +284,7 @@ def parse_dot_porttools(f):
             pass
 
     return config
+
 
 def main():
     if len(sys.argv) < 3:
@@ -329,7 +345,6 @@ def main():
             generate_makefile(data, path, **user)
 
         print("[*] GENERATED: %s" % name)
-
 
     if len(no_src):
         print('[!] The following packages had no source dist:')
