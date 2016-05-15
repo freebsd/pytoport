@@ -193,7 +193,7 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
             if extra:
                 print("%s has extra info: %s" % (pkg, extra))
 
-            d.append("${PYTHON_PKGNAMEPREFIX}%s%s:${PORTSDIR}/XXX/py-%s" % (
+            d.append("${PYTHON_PKGNAMEPREFIX}%s%s:XXX/py-%s" % (
                 pkg, version, pkg))
 
         add(o, 'RUN_DEPENDS', ' \\\n\t\t\t'.join(d))
