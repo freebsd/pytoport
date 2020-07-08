@@ -166,7 +166,7 @@ def get_minimum(data):
 
 def gen_dep(pkg):
     ports = FreeBSD_ports()
-    portpath = ports.find_portdir("py36-" + pkg)
+    portpath = ports.find_portdir("py37-" + pkg)
     if portpath is None:
         portpath = "XXX/py-" + pkg
     return portpath
