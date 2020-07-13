@@ -31,7 +31,10 @@ setup(
     ],
     install_requires = [
         'docutils>=0.12',
-        'spdx-lookup>=0.3.0'
+        'spdx-lookup>=0.3.0',
+        'packaging',
+        'setuptools',
+        'FreeBSD-ports>=0.0.9',
     ],
     entry_points = {
         'console_scripts': [

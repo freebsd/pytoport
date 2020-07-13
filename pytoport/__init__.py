@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2015  Brendan Molloy <brendan+freebsd@bbqsrc.net>
+# Copyright (c) 2015 Brendan Molloy <brendan+freebsd@bbqsrc.net>
+# Copyright (c) 2019 Steve Wills <steve@mouf.net>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -39,6 +40,9 @@ import docutils.frontend
 import docutils.utils
 import docutils.parsers.rst
 import spdx_lookup
+from FreeBSD_ports import FreeBSD_ports
+from pkg_resources import parse_version
+import packaging.requirements
 
 
 def rst_to_text(rst_data):
@@ -105,6 +109,29 @@ def version_iter(data):
             else:
                 yield tuple(int(x) for x in raw)
 
+def version_parse(version):
+    if len(version) == 0:
+        return('>=0')
+    vdep = version.split(',')
+    newv = None
+    veq = None
+    for v in vdep:
+        if v[0] == '>' or v[0] == '=':
+            if v[1] == '=':
+                newv = v[2:]
+                veq = True
+            else:
+                newv = v[1:]
+    if newv != None:
+        version = newv
+    if not parse_version(version) > parse_version('0'):
+        version = '>=0'
+    else:
+        if veq == True:
+            version = ">=" + version
+        else:
+            version = ">" + version
+    return version
 
 def get_minimum(data):
     supported = list(version_iter(data))
@@ -137,14 +164,18 @@ def get_minimum(data):
 
     return "%s+ # %s" % (ver, ", ".join(others))
 
+def gen_dep(pkg):
+    ports = FreeBSD_ports()
+    portpath = ports.find_portdir("py37-" + pkg)
+    if portpath is None:
+        portpath = "XXX/py-" + pkg
+    return portpath
 
 def add(o, k, v):
     o.write("%s=" % k)
     if len(k) < 7:
         o.write('\t')
     o.write("\t%s\n" % v)
-
-_requires_dist_re = re.compile(r'^([^\s;]+)\s*(?:\((.+?)\))?(?:; (.*))?;*?$')
 
 
 def generate_makefile(data, path=os.getcwd(), name=None, email=None):
@@ -181,23 +212,20 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
     deps = data['info'].get('requires_dist', None)
     if deps is not None:
         d = []
-        for dep in deps:
-            m = _requires_dist_re.match(dep)
-            if m is None:
-                # TODO handle this better
-                continue
+        for dep in sorted(deps, key=str.lower):
+            x = packaging.requirements.Requirement(dep)
 
-            pkg = m.group(1)
-            version = m.group(2) or '>0'
-            extra = m.group(3)
+            pkg = x.name
+            version = version_parse(str(x.specifier))
 
-            if extra:
-                print("%s has extra info: %s" % (pkg, extra))
+            if "extra" in str(x.marker):
+                print("%s has extra info: %s" % (pkg, x.marker))
 
-            d.append("${PYTHON_PKGNAMEPREFIX}%s%s:XXX/py-%s" % (
-                pkg, version, pkg))
+            portpath = gen_dep(pkg)
+            d.append("${PYTHON_PKGNAMEPREFIX}%s%s:%s@${PY_FLAVOR}" % (
+                pkg, version, portpath))
 
-        add(o, 'RUN_DEPENDS', ' \\\n\t\t\t'.join(d))
+        add(o, 'RUN_DEPENDS', ' \\\n\t\t'.join(d))
         o.write('\n')
 
     min_py = get_minimum(data)
