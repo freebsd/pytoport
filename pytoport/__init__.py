@@ -79,10 +79,8 @@ def generate_pkg_descr(data, path=os.getcwd()):
         pass
 
     d = "\n\n".join(textwrap.fill(x, width=80) for x in desc.split('\n\n'))
-    www = info.get('home_page', info['package_url'])
-
     with open(join(path, 'pkg-descr'), 'w') as f:
-        f.write("%s\n\nWWW: %s\n" % (d, www))
+        f.write("%s\n" % d)
 
 
 def get_licenses(data):
@@ -181,15 +179,11 @@ def add(o, k, v):
 def generate_makefile(data, path=os.getcwd(), name=None, email=None):
     info = data['info']
     o = StringIO()
-    o.write("# Created by: ")
-    if name is not None and email is not None:
-        o.write("%s <%s>" % (name, email))
-    o.write("\n# $FreeBSD$\n\n")
 
     add(o, "PORTNAME", info['name'].lower())
     add(o, "PORTVERSION", info['version'])
     add(o, "CATEGORIES", "devel python")
-    add(o, "MASTER_SITES", "CHEESESHOP")
+    add(o, "MASTER_SITES", "PYPI")
     add(o, "PKGNAMEPREFIX", "${PYTHON_PKGNAMEPREFIX}")
     o.write('\n')
 
@@ -199,6 +193,8 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         add(o, "MAINTAINER", email)
     summary = info.get('summary', '# FILL ME')
     add(o, "COMMENT", "{}".format(summary.capitalize().rstrip('.')))
+    www = info.get('home_page', info['package_url'])
+    add(o, "WWW", www)
     o.write('\n')
 
     if info.get('licfile', None):
