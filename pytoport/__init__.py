@@ -161,12 +161,12 @@ def get_matching_versions(upstream_supported):
     # version.
     if len(py_port_versions) == 0:
         print("Warning: upstream declared python versions do not intersect with ports supported python versions.")
-        if [3, -1] in upstream_supported:
+        if (3, -1) in upstream_supported:
             print("Assuming generic compatibility with python 3.x")
             py_port_versions = [
                 v for v in upstream_supported if v[0] == 3
             ]
-        elif [2, -1] in upstream_supported:
+        elif (2, -1) in upstream_supported:
             print("Assuming generic compatibility with python 2.x")
             py_port_versions = [
                 v for v in upstream_supported if v[0] == 2
