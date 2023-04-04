@@ -79,10 +79,8 @@ def generate_pkg_descr(data, path=os.getcwd()):
         pass
 
     d = "\n\n".join(textwrap.fill(x, width=80) for x in desc.split('\n\n'))
-    www = info.get('home_page', info['package_url'])
-
     with open(join(path, 'pkg-descr'), 'w') as f:
-        f.write("%s\n\nWWW: %s\n" % (d, www))
+        f.write("%s\n" % d)
 
 
 def get_licenses(data):
@@ -133,40 +131,99 @@ def version_parse(version):
             version = ">" + version
     return version
 
-def get_minimum(data):
-    supported = list(version_iter(data))
-    supported.sort()
 
-    if len(supported) == 0:
-        return None
-    elif len(supported) == 1:
-        if supported[0][1] == -1:
-            return "%s" % supported[0][0]
-        return "%s.%s" % supported[0]
+# Keep in synch with _PYTHON_VERSIONS in bsd.default-versions.mk
+all_python_ports_versions = [(3, 9), (3, 8), (3, 7), (3, 10), (3, 11), (2, 7)]
 
-    # FreeBSD lowest supported of v2
-    if supported[0][0] == 2:
-        return ""  # Support all!
-    else:
-        lowest = supported[0]
+def get_upstream_versions(upstream_supported):
+    # Join the list of upstream versions into a string to be
+    # used as a comment on the USE+=python line
 
-    if lowest[1] == -1:
-        ver = "%s" % lowest[0]
-    else:
-        ver = "%s.%s" % lowest
-
-    others = []
-    for x in supported:
-        if x[1] == -1:
-            others.append("%s" % x[0])
+    versions = []
+    for v in upstream_supported:
+        if v[1] == -1:
+            versions.append("%s" % v[0])
         else:
-            others.append("%s.%s" % x)
+            versions.append("%s.%s" % v)
 
-    return "%s+ # %s" % (ver, ", ".join(others))
+    return ", ".join(versions)
+
+
+def get_matching_versions(upstream_supported):
+    # The intersections of the ports supported versions and upstream supported
+    # versions in order
+    py_port_versions = [
+        v for v in upstream_supported
+            if v in all_python_ports_versions
+    ]
+
+    # No specific matching versions, but upstream may specify just the major
+    # version.
+    if len(py_port_versions) == 0:
+        print("Warning: upstream declared python versions do not intersect with ports supported python versions.")
+        if (3, -1) in upstream_supported:
+            print("Assuming generic compatibility with python 3.x")
+            py_port_versions = [
+                v for v in upstream_supported if v[0] == 3
+            ]
+        elif (2, -1) in upstream_supported:
+            print("Assuming generic compatibility with python 2.x")
+            py_port_versions = [
+                v for v in upstream_supported if v[0] == 2
+            ]
+
+    # No matching versions at all
+    if len(py_port_versions) == 0:
+        print("No matching versions found")
+
+    return py_port_versions
+
+
+def get_python_version_range(data):
+    upstream_supported = list(version_iter(data))
+    upstream_supported.sort()
+
+    upstream_versions = get_upstream_versions(upstream_supported)
+
+    py_port_versions = get_matching_versions(upstream_supported)
+    if len(py_port_versions) == 0:
+        return (None, upstream_versions)
+
+    # A USES=python version range specification is built from two part
+    # "major.minor" version strings: either a simple version string, eg. 3.9;
+    # an open-ended range above a minimum, eg. 3.9+ (This is the most common);
+    # a bounded range at both extremes, eg. 3.9-3.11 or an open ended range
+    # below a maximum eg. -3.9 (very rare).
+
+    min_version = ""
+    max_version = ""
+    range_indicator = ""
+
+    if min(all_python_ports_versions) < min(py_port_versions):
+        min_version = "%s.%s" % min(py_port_versions)
+
+    if max(all_python_ports_versions) > max(py_port_versions):
+        max_version = "%s.%s" % max(py_port_versions)
+
+    if min_version:
+        if max_version:
+            range_indicator = "-"
+        else:
+            range_indicator = "+"
+    elif max_version:
+        range_indicator = "-"
+
+    version_range = "%s%s%s" % (min_version, range_indicator, max_version)
+
+    return (version_range, upstream_versions)
+
+
+# Needs to track bsd.default-versions.mk
+python_pkgprefix = "py39-"
 
 def gen_dep(pkg):
     ports = FreeBSD_ports()
-    portpath = ports.find_portdir("py37-" + pkg)
+    portpath = ports.find_portdir(python_pkgprefix + pkg)
     if portpath is None:
         portpath = "XXX/py-" + pkg
     return portpath
@@ -181,15 +238,11 @@ def add(o, k, v):
 def generate_makefile(data, path=os.getcwd(), name=None, email=None):
     info = data['info']
     o = StringIO()
-    o.write("# Created by: ")
-    if name is not None and email is not None:
-        o.write("%s <%s>" % (name, email))
-    o.write("\n# $FreeBSD$\n\n")
 
     add(o, "PORTNAME", info['name'].lower())
     add(o, "PORTVERSION", info['version'])
     add(o, "CATEGORIES", "devel python")
-    add(o, "MASTER_SITES", "CHEESESHOP")
+    add(o, "MASTER_SITES", "PYPI")
     add(o, "PKGNAMEPREFIX", "${PYTHON_PKGNAMEPREFIX}")
     o.write('\n')
 
@@ -199,6 +252,8 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         add(o, "MAINTAINER", email)
     summary = info.get('summary', '# FILL ME')
     add(o, "COMMENT", "{}".format(summary.capitalize().rstrip('.')))
+    www = info.get('home_page', info['package_url'])
+    add(o, "WWW", www)
     o.write('\n')
 
     if info.get('licfile', None):
@@ -228,11 +283,11 @@ def generate_makefile(data, path=os.getcwd(), name=None, email=None):
         add(o, 'RUN_DEPENDS', ' \\\n\t\t'.join(d))
         o.write('\n')
 
-    min_py = get_minimum(data)
-    if min_py:
-        add(o, "USES", "python:%s" % min_py)
+    py_version_range = get_python_version_range(data)
+    if py_version_range[0] is None or py_version_range[0] == "":
+        add(o, "USES", "python # %s" % py_version_range[1])
     else:
-        add(o, "USES", "python")
+        add(o, "USES", "python:%s # %s" % py_version_range)
 
     add(o, "USE_PYTHON", "autoplist distutils")
     o.write('\n.include <bsd.port.mk>\n')
