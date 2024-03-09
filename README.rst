@@ -60,9 +60,8 @@ details:
     EMAIL="your@email.address"
     FULLNAME="Your Name"
 
-See ``man 5 porttools`` for more information. If you don't create this
-file, you'll have to fill out the relevant parts of the ``Makefile``
-yourself.
+If you don't create this file, you'll have to fill out the
+relevant parts of the ``Makefile`` yourself.
 
 License
 -------
